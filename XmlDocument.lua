@@ -4,6 +4,7 @@ local XmlNode = {}
 ---------------------------------------------------------------------------
 -- XmlDocument
 ---------------------------------------------------------------------------
+local CreateNodeFromTable
 
 function XmlDocument.New()
 	local self = {}
@@ -99,24 +100,26 @@ function XmlDocument.NewForm()
     return self
 end
 
-function XmlDocument.CreateFromTable(tXml)
-	local tDoc = XmlDocument.New()
-	local tRoot = CreateNodeFromTable(tXml)
-	for i,v in ipairs(tXml) do
-		AddChildFromTable(v, tRoot)
-	end
-	tDoc:SetRoot(tRoot)
-end
-
-local function AddChildFromTable(tXml, tParent)
-	local tNode = CreateNodeFromTable(tXml)
+local function AddChildFromTable(tXml, tParent, tDoc)
+	local tNode = CreateNodeFromTable(tXml, tDoc)
 	tParent:AddChild(tNode)
 	for i,v in ipairs(tXml) do
-		AddChildFromTable(v, tNode)
+		AddChildFromTable(v, tNode, tDoc)
 	end
 end
 
-local function CreateNodeFromTable(tXml)
+function XmlDocument.CreateFromTable(tXml)
+	local tDoc = XmlDocument.New()
+	local tRoot = CreateNodeFromTable(tXml, tDoc)
+	for i,v in ipairs(tXml) do
+		AddChildFromTable(v, tRoot, tDoc)
+	end
+	tDoc:SetRoot(tRoot)
+
+	return tDoc
+end
+
+function CreateNodeFromTable(tXml, tDoc)
 	local tNode = tDoc:NewNode(tXml.__XmlNode)
 	for k,v in pairs(tXml) do
 		tNode:Attribute(k, v)
@@ -138,7 +141,7 @@ function XmlNode.New(tDoc, strTag, tAttributes)
 
 	tAttributes = true and tAttributes or {}
 
-  local self = {}
+	local self = {}
 	local tChildren = {}
 	local strText = ""
 
@@ -300,5 +303,5 @@ function XmlNode.New(tDoc, strTag, tAttributes)
 end
 
 -- Register Packages
-Apollo.RegisterPackage(XmlDocument, "Drafto:Lib:XmlDocument-1.0", 4, {})
+Apollo.RegisterPackage(XmlDocument, "Drafto:Lib:XmlDocument-1.0", 5, {})
 --Apollo.RegisterPackage(XmlNode, "Drafto:Lib:XmlNode-2.0", 1, {})
